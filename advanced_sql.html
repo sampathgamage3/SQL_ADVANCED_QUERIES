@@ -1,0 +1,85 @@
+https://dev.mysql.com/doc/refman/5.5/en/insert-select.html
+http://stackoverflow.com/questions/16721077/make-new-column-with-math-function-in-table
+
+
+<h4><u><b>CREATE TABLE AND INSERT DATA (SIMPLE WAY)</u></b></h3>
+
+DROP TABLE IF EXISTS `tutorials_tbl`;
+CREATE TABLE tutorials_tbl(
+tutorial_id int(11) NOT NULL AUTO_INCREMENT,
+tutorial_title VARCHAR(100) NOT NULL,
+tutorial_author VARCHAR(20) NOT NULL,
+submission_date DATE,
+PRIMARY KEY (tutorial_id)
+);
+
+DROP TABLE IF EXISTS `tutorials_count`;
+CREATE TABLE `tutorials_count` (
+    countid int(11) NOT NULL AUTO_INCREMENT,
+  tutorial_author varchar(20) NOT NULL,
+  tutorial_count int(11) NULL,
+PRIMARY KEY (countid)
+);
+
+
+INSERT INTO `tutorials_tbl` (tutorial_title,tutorial_author,submission_date)
+VALUES ("Learn PHP", "John Poul", NOW());
+INSERT INTO `tutorials_tbl` (tutorial_title,tutorial_author,submission_date)
+VALUES ("Learn C++", "Pual Nelson", NOW());
+INSERT INTO `tutorials_tbl` (tutorial_title,tutorial_author,submission_date)
+VALUES ("Learn JAVA", "Sam Solver", NOW());
+
+INSERT INTO `tutorials_count` (tutorial_author,tutorial_count)
+VALUES ("John Poul", 100);
+INSERT INTO `tutorials_count` (tutorial_author,tutorial_count)
+VALUES ("Pual hn Nelson", 20);
+INSERT INTO `tutorials_count` (tutorial_author,tutorial_count)
+VALUES ("Sam Solver", NULL);
+
+<h4><u><b>INSERT DATA  WITH SELECT QUERY (INTERMEDIATE WAY) </u></b></h3>
+
+CREATE TABLE table1 (user VARCHAR(20) PRIMARY KEY, age INT);
+CREATE TABLE table2 (user VARCHAR(20) PRIMARY KEY, os VARCHAR(20));
+
+INSERT INTO table1 (user,age) VALUES ('fred',20);
+INSERT INTO table1 (user,age) VALUES ('mary',30);
+INSERT INTO table2 (user,os) VALUES ('fred','FreeBSD');
+INSERT INTO table2 (user,os) VALUES ('mary','Linux');
+
+CREATE TABLE newtable (user VARCHAR(20) PRIMARY KEY, age INT, os VARCHAR(20));
+
+INSERT newtable (user,age,os) SELECT table1.user,table1.age,table2.os FROM table1,table2 WHERE table1.user=table2.user;
+
+SELECT TT.tutorial_id,TT.tutorial_author,TC.tutorial_count
+FROM tutorials_tbl as TT , tutorials_count as TC
+WHERE TT.tutorial_author = TC.tutorial_author
+
+SELECT TT.tutorial_id,TT.tutorial_author,TC.tutorial_count
+FROM
+tutorials_tbl TT
+INNER JOIN tutorials_count TC ON TT.tutorial_author = TC.tutorial_author
+WHERE TT.tutorial_author = TC.tutorial_author;
+
+INSERT INTO newtable (user,age)
+SELECT TC.tutorial_author,TC.tutorial_count
+FROM tutorials_count TC
+INNER JOIN tutorials_tbl TT ON TT.tutorial_author = TC.tutorial_author;
+
+<h4><u><b>CREATE TABLE USING SELECT EXISTING TABLE FIELDS WITH MATH FUNCTIONS</u></b></h3>
+
+
+CREATE TABLE salary as
+SELECT countid , tutorial_author , tutorial_count*2
+FROM tutorials_count
+
+CREATE TABLE salary_details AS
+SELECT
+tutorials_tbl.tutorial_id as id ,
+tutorials_tbl.tutorial_author,
+tutorials_tbl.submission_date,
+(newtable.age)/2,
+(tutorials_count.tutorial_count*20)/2 as salary,
+newtable.os  
+FROM newtable
+INNER JOIN tutorials_count ON newtable.`user` = tutorials_count.tutorial_author
+INNER JOIN tutorials_tbl ON tutorials_tbl.tutorial_author = tutorials_count.tutorial_author
